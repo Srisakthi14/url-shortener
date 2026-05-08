@@ -55,6 +55,8 @@ flowchart LR
   Redis -.->|read-through on miss| DDB
 ```
 
+**Extended diagrams (context, AWS deployment, sequences, data shapes):** [docs/architecture.md](docs/architecture.md)
+
 ### NFR targets (design)
 
 - Throughput: about **50 writes/sec** and **5,000 reads/sec**.
