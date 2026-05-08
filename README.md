@@ -75,12 +75,18 @@ flowchart LR
 
 ## Local development
 
-Prerequisites: **JDK 17**, **Gradle** (wrapper included).
+Prerequisites: **JDK 17**, **Gradle** (wrapper included), **Redis** reachable at `localhost:6379` (or override `spring.data.redis.*`), and **DynamoDB**:
+- AWS account: default credential chain + table `url-shortener.dynamodb.table-name` in `url-shortener.aws.region`, or  
+- LocalStack / DynamoDB Local: set `url-shortener.dynamodb.endpoint` (e.g. `http://localhost:4566`) — the app uses static `test` credentials when an endpoint is set.
+
+Optional: comma-separated blocked hosts via `url-shortener.policy.blocked-domains`.
 
 ```bash
 ./gradlew test
 ./gradlew bootRun
 ```
+
+Tests use profile **`test`** (`src/test/resources/application-test.properties`): Redis auto-config and DynamoDB table health checks are disabled; AWS/Dynamo beans are mocked so **Docker/AWS are not required for `./gradlew test`**.
 
 Health check (use **http**, not https, for local Tomcat):
 
@@ -106,7 +112,7 @@ This repo includes an OpenSpec change with proposal, design, delta spec, and tas
 
 ## Implementation status
 
-The application currently provides a **runnable Spring Boot** service with **Actuator health** and a **container build**, suitable for **ECS/ALB** health checks. **Core shortening, DynamoDB, Redis, and analytics** are specified in OpenSpec and listed in `tasks.md`; implement or track them as you work through **`/opsx:apply`** or your own backlog.
+The **MVP URL shortening API** (create, redirect, analytics), **DynamoDB** persistence, **Redis** read-through cache, **rate limiting**, **Micrometer** timings, and **DynamoDB health** (when enabled) are implemented per the OpenSpec change. Use **`/opsx:archive`** when you are ready to merge specs into `openspec/specs/`.
 
 ## Repository
 
