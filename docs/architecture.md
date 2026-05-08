@@ -19,7 +19,7 @@ flowchart TB
     API[Spring Boot service]
   end
 
-  Browser -->|HTTPS redirect GET /{code}| API
+  Browser -->|HTTPS redirect GET /shortCode| API
   APIClient -->|HTTPS JSON| API
 ```
 
@@ -80,7 +80,7 @@ Responsibilities layered for clarity; exact package names may differ in code.
 ```mermaid
 flowchart TB
   subgraph api["API layer"]
-    REST[REST controllers\nPOST /api/v1/urls, GET /{code}, analytics]
+    REST["REST controllers\nPOST /api/v1/urls, GET /shortCode, analytics"]
     VAL[Validation / blocked domains]
     RL[Rate limiting]
   end
@@ -148,17 +148,17 @@ sequenceDiagram
   participant R as Redis
   participant D as DynamoDB
 
-  B->>ALB: GET /{shortCode}
+  B->>ALB: GET /shortCode
   ALB->>S: forward
   S->>S: validate code shape [a-z0-9] length 7
-  S->>R: GET url:{code}
+  S->>R: GET Redis url key for shortCode
   alt cache hit
     R-->>S: cached mapping + expiry meta
   else cache miss
     R-->>S: (null)
     S->>D: GetItem(shortCode)
     D-->>S: item or not found
-    S->>R: SET url:{code} with TTL
+    S->>R: SET Redis url key with TTL
   end
   S->>S: apply biz rules (missing 404, expired 410, active 302)
   alt active mapping
@@ -179,7 +179,7 @@ sequenceDiagram
   participant S as Spring Boot
   participant D as DynamoDB
 
-  C->>S: GET /api/v1/urls/{shortCode}/analytics
+  C->>S: GET /api/v1/urls/shortCode/analytics
   S->>D: GetItem(shortCode)
   D-->>S: mapping + rollup fields
   S-->>C: 200 JSON: totalClicks, lastAccessedAt, hourly buckets (≤30d)
